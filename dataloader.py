@@ -4,8 +4,9 @@ import numpy as np
 
 from utils import get_timestamp
 
-
+# Dataset class for the model
 class SuicidalDataset(Dataset):
+    #Initialize the labels, tweet features, temporal tweet features, timestamp, current, and random
     def __init__(self, label, tweet, temporal, timestamp, current=True, random=False):
         super().__init__()
         self.label = label
@@ -17,7 +18,7 @@ class SuicidalDataset(Dataset):
 
     def __len__(self):
         return len(self.label)
-
+    #Get the item
     def __getitem__(self, item):
         labels = torch.tensor(self.label[item])
         tweet_features = self.tweet[item]
@@ -35,4 +36,4 @@ class SuicidalDataset(Dataset):
                 temporal_tweet_features = torch.tensor(self.temporal[item][1:])
                 timestamp = torch.tensor(get_timestamp(self.timestamp[item][1:]))
 
-        return [labels, tweet_features, temporal_tweet_features, timestamp]
+        return [labels, tweet_features, temporal_tweet_features, timestamp] #Return the labels, tweet features, temporal tweet features, and timestamp
