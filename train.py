@@ -19,7 +19,7 @@ from model.model import HistoricCurrent, Historic, Current
 from utils import pad_ts_collate
 
 
-def focal_loss(labels, logits, alpha, gamma):
+def focal_loss(labels, logits, alpha, gamma): # Define the focal loss
     """Compute the focal loss between `logits` and the ground truth `labels`.
     Focal loss = -alpha_t * (1-pt)^gamma * log(pt)
     where pt is the probability of being classified to the true class.
@@ -51,7 +51,7 @@ def focal_loss(labels, logits, alpha, gamma):
     return focal_loss
 
 
-def CB_loss(labels, logits, samples_per_cls, no_of_classes, loss_type, beta, gamma):
+def CB_loss(labels, logits, samples_per_cls, no_of_classes, loss_type, beta, gamma): # Define the class balanced loss
     """Compute the Class Balanced Loss between `logits` and the ground truth `labels`.
     Class Balanced Loss: ((1-beta)/(1-beta^n))*Loss(labels, logits)
     where Loss is one of the standard losses used for Neural Networks.
@@ -98,7 +98,7 @@ def train_loop(model, dataloader, optimizer, device, dataset_len):
     running_loss = 0.0
     running_corrects = 0
 
-    for bi, inputs in enumerate(tqdm(dataloader, total=len(dataloader), leave=False)):
+    for bi, inputs in enumerate(tqdm(dataloader, total=len(dataloader), leave=False)): # Iterate through the dataloader
         labels, tweet_features, temporal_features, lens, timestamp = inputs
 
         labels = labels.to(device)
@@ -108,11 +108,11 @@ def train_loop(model, dataloader, optimizer, device, dataset_len):
         timestamp = timestamp.to(device)
 
         optimizer.zero_grad()
-        output, _ = model(tweet_features, temporal_features, lens, timestamp)
-        _, preds = torch.max(output, 1)
+        output, _ = model(tweet_features, temporal_features, lens, timestamp)#pass the tweet features, temporal features, lens, and timestamp to the model
+        _, preds = torch.max(output, 1) # Get the predictions
 
         loss = loss_fn(output, labels, labels.unique(
-            return_counts=True)[1].tolist())
+            return_counts=True)[1].tolist()) # Calculate the loss
         loss.backward()
         optimizer.step()
 
@@ -122,10 +122,10 @@ def train_loop(model, dataloader, optimizer, device, dataset_len):
     epoch_loss = running_loss / len(dataloader)
     epoch_acc = running_corrects.double() / dataset_len
 
-    return epoch_loss, epoch_acc
+    return epoch_loss, epoch_acc # Return the epoch loss and accuracy
 
 
-def eval_loop(model, dataloader, device, dataset_len):
+def eval_loop(model, dataloader, device, dataset_len): # Define the evaluation loop
     model.eval()
 
     running_loss = 0.0
@@ -133,7 +133,7 @@ def eval_loop(model, dataloader, device, dataset_len):
 
     fin_targets = []
     fin_outputs = []
-
+    #Iterate through the dataloader
     for bi, inputs in enumerate(tqdm(dataloader, total=len(dataloader), leave=False)):
         labels, tweet_features, temporal_features, lens, timestamp = inputs
 
@@ -153,13 +153,13 @@ def eval_loop(model, dataloader, device, dataset_len):
         running_loss += loss.item()
         running_corrects += torch.sum(preds == labels.data)
 
-        fin_targets.append(labels.cpu().detach().numpy())
+        fin_targets.append(labels.cpu().detach().numpy())# Append the targets and predictions
         fin_outputs.append(preds.cpu().detach().numpy())
 
     epoch_loss = running_loss / len(dataloader)
     epoch_accuracy = running_corrects.double() / dataset_len
 
-    return epoch_loss, epoch_accuracy, np.hstack(fin_outputs), np.hstack(fin_targets)
+    return epoch_loss, epoch_accuracy, np.hstack(fin_outputs), np.hstack(fin_targets)# Return the epoch loss, accuracy, predictions, and targets
 
 
 def loss_fn(output, targets, samples_per_cls):
@@ -168,7 +168,7 @@ def loss_fn(output, targets, samples_per_cls):
     no_of_classes = 2
     loss_type = "focal"
 
-    return CB_loss(targets, output, samples_per_cls, no_of_classes, loss_type, beta, gamma)
+    return CB_loss(targets, output, samples_per_cls, no_of_classes, loss_type, beta, gamma)# Return the class balanced loss
 
 
 def main(config):
@@ -226,10 +226,10 @@ def main(config):
 
     model.to(device)
 
-    optimizer = AdamW(model.parameters(), lr=LEARNING_RATE)
+    optimizer = AdamW(model.parameters(), lr=LEARNING_RATE) # Define the optimizer
     scheduler = get_cosine_schedule_with_warmup(
         optimizer, num_warmup_steps=5, num_training_steps=EPOCHS
-    )
+    )# Define the scheduler
 
     model_name = f'{int(datetime.timestamp(datetime.now()))}_{config.base_model}_{config.model}_{config.hidden_dim}_{config.num_layer}_{config.learning_rate}'
 
